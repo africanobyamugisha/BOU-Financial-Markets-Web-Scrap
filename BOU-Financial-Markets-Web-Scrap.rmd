@@ -65,15 +65,27 @@ for(i in 1:nrow(df_links)){
 # read excel files into a list
 ```{r}
 
-read_excel("https://www.bou.or.ug/bou/bouwebsite/bouwebsitecontent/FinancialMarkets/tbonds-prices_and_yields/2023/Feb/T-Bonds-as-at-1st-Feb-2023.xlsx")
-
-
 # specify the URL of the Excel file
-url <- "https://www.bou.or.ug/bou/bouwebsite/bouwebsitecontent/FinancialMarkets/tbonds-prices_and_yields/2023/Feb/T-Bonds-as-at-1st-Feb-2023.xlsx"
+url1 <- df_links$links[1]
 
-GET(url, write_disk(dt <- tempfile(fileext = ".xlsx")))
-df <- read_excel(dt, sheet = 2, range = cell_cols(c("A","B","C")))
-librar
+GET(url1, write_disk(dt <- tempfile(fileext = ".xlsx")))
+df <- read_excel(dt, sheet = grep(dt, excel_sheets(dt), value = TRUE),
+                 range = cell_cols("A:C"),col_names = TRUE, 
+                 col_types = c("date", "numeric", "numeric"),
+                 .name_repair = toupper
+                 )
+
+excel_sheets(dt)
+grep("data", excel_sheets(dt), value = TRUE)
+
+# get the names of all sheets in the Excel file
+sheet_names <- excel_sheets(path)
+
+# filter the sheet names based on the given string
+desired_sheet_name <- grep("data", excel_sheets(dt), value = TRUE)
+
+# read the data from the desired sheet
+data <- read_excel(path, sheet = desired_sheet_name)
 
 df_links$links[1]
 
