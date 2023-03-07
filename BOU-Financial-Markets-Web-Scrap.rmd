@@ -69,38 +69,35 @@ for(i in 1:nrow(df_links)){
 url1 <- df_links$links[1]
 
 GET(url1, write_disk(dt <- tempfile(fileext = ".xlsx")))
-df <- read_excel(dt, sheet = grep(dt, excel_sheets(dt), value = TRUE),
-                 range = cell_cols("A:C"),col_names = TRUE, 
+dtt <- read_excel(dt, sheet = grep("Bonds", excel_sheets(dt), value = TRUE),
+                 range = cell_cols("A:C"),
+                 col_names = TRUE, 
                  col_types = c("date", "numeric", "numeric"),
                  .name_repair = toupper
                  )
 
-excel_sheets(dt)
-grep("data", excel_sheets(dt), value = TRUE)
-
-# get the names of all sheets in the Excel file
-sheet_names <- excel_sheets(path)
-
-# filter the sheet names based on the given string
-desired_sheet_name <- grep("data", excel_sheets(dt), value = TRUE)
-
-# read the data from the desired sheet
-data <- read_excel(path, sheet = desired_sheet_name)
-
-df_links$links[1]
-
 ```
 
-
-# combine all excel files into one data table
 ```{r}
-combined_table <- rbindlist(file_list)
+merge_dt <- data.frame()
+
+for(i in 1:nrow(df_links)){
+  GET(df_links$links[i], write_disk(dt <- tempfile(fileext = ".xlsx")))
+  temp_dt <- read_excel(dt, sheet = grep("Bonds", excel_sheets(dt), value = TRUE),
+                 range = cell_cols("A:C"),
+                 col_names = TRUE, 
+                 col_types = c("date", "numeric", "numeric"),
+                 .name_repair = toupper
+                 )
+  
+  merge_dt <- bind_rows(merge_dt, temp_dt)
+}
 ```
 
 
 # write the combined table to a new excel file
 ```{r}
-write.xlsx(combined_table, "combined_table.xlsx", row.names = FALSE)
+write.xlsx(merge_dt, "combined_data.xlsx", row.names = FALSE)
 ```
 
 
