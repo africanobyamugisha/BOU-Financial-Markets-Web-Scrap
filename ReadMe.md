@@ -17,3 +17,5 @@ To use this code, you will need to have R installed on your computer and have th
 ## Contact
 
 If you have any questions or comments about this code, please feel free to add an issue Or comment in the discussion
+
+https://github.com/africanobyamugisha/BOU-Financial-Markets-Web-Scrap/discussions
