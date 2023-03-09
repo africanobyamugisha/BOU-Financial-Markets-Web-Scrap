@@ -1,0 +1,144 @@
+---
+title: "BOU Web Scrapping"
+author: "africano.byanmugisha@asigmacapital.com"
+date: "3/7/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_libraries}
+# LIBRARIES
+pacman::p_load(
+dplyr,
+rvest,
+data.table,
+tm,
+readxl,
+httr
+)
+```
+
+
+# Description
+- This code first uses the rvest package to scrape the webpage for links to the daily excel files. 
+- It then extracts the links and titles and stores them in a data frame. 
+- The DT package is used to combine the excel files into one data table, which is then written to a new excel file using the writexl package.
+
+
+# scrape the webpage for links
+```{r}
+url <- "https://www.bou.or.ug/bou/bouwebsite/FinancialMarkets/Closing-TBondsPrices-Yield.html"
+webpage <- read_html(url)
+```
+
+
+# extract links and titles
+```{r}
+links <- webpage %>% 
+html_nodes(".ap-linksequence a") %>%
+  html_attr("href")
+
+Date <- webpage %>%
+  html_nodes(".ap-linksequence a") %>%
+  html_text()
+
+remove_words <- c("T-Bonds as at ","TBonds as at ", ".xlsx","T-Bonds-as-at-","Bonds-as-at-")
+Date <- removeWords(Date, remove_words)
+
+```
+
+
+# create a data frame of links and titles
+```{r}
+
+df_links <- data.frame(Date,links)
+
+for(i in 1:nrow(df_links)){
+  df_links$links[i] <- paste0("https://www.bou.or.ug",df_links$links[i])
+}
+```
+
+# read excel files into a list
+```{r}
+# 
+# # specify the URL of the Excel file
+# url1 <- df_links$links[1]
+# 
+# GET(url1, write_disk(dt <- tempfile(fileext = ".xlsx")))
+# dtt <- read_excel(dt, sheet = grep("Bonds", excel_sheets(dt), value = TRUE),
+#                  range = cell_cols("A:B"),
+#                  col_names = TRUE,
+#                  col_types = c("date", "numeric"),
+#                  .name_repair = toupper
+#                  )
+#   df_links$Date
+# 
+#   dtt$REPORT_DATE <- df_links$Date[1]
+#   
+# remove_words <- c("T-Bonds as at ","TBonds as at ", ".xlsx","T-Bonds-as-at-","Bonds-as-at-")
+# Date <- removeWords(Date, remove_words)
+
+```
+
+```{r merge_dt}
+
+merge_dt <- data.frame()
+
+for(i in 1:nrow(df_links)){
+  GET(df_links$links[i], write_disk(dt <- tempfile(fileext = ".xlsx")))
+  temp_dt <- read_excel(dt, sheet = grep("T-Bonds as at", excel_sheets(dt), value = TRUE,ignore.case = T),
+                 range = cell_cols("A:B"),
+                 col_names = TRUE, 
+                 col_types = c("date", "numeric"),
+                 .name_repair = toupper
+                 )
+  
+  temp_dt$REPORT_DATE <- df_links$Date[i]
+  
+   # assign(paste0("df_", i), temp_dt)
+  
+  merge_dt <- bind_rows(merge_dt, temp_dt)
+  
+}
+
+```
+
+```{r}
+# df_links$Date[2] <- as.Date(df_links$Date[2], format = "%dnd %b %Y")
+# 
+# for(i in 1:nrow(df_links)){
+#   if (grepl("st", df_links$Date[i])) {
+#     
+#    df_links$Date[i] <- as.Date(df_links$Date[i], format = "%dst %b %Y")
+#     
+#   } else if (grepl("nd", df_links$Date[i])) {
+#     
+#     as.Date(df_links$Date[i], format = "%dnd %b %Y")
+#     
+#   } else if (grepl("rd", df_links$Date[i])) {
+#     
+#     as.Date(df_links$Date[i], format = "%drd %b %Y")
+#     
+#   } else (grepl("th", df_links$Date[i])) {
+#     
+#     as.Date(df_links$Date[i], format = "%dth %b %Y")
+#     
+#   }
+# }
+```
+
+# write the combined table to a new excel file
+```{r save_file}
+
+if (file.exists("combined_data.xlsx")) {
+  file.remove("combined_data.xlsx")
+}
+
+writexl::write_xlsx(merge_dt, "combined_data.xlsx")
+
+```
+
+
