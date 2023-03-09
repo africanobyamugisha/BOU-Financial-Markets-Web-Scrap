@@ -12,12 +12,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r load_libraries}
 # LIBRARIES
 pacman::p_load(
-dplyr,
-rvest,
-data.table,
-tm,
-readxl,
-httr
+  dplyr,
+  rvest,
+  data.table,
+  tm,
+  readxl,
+  httr
 )
 ```
 
@@ -61,74 +61,86 @@ for(i in 1:nrow(df_links)){
 }
 ```
 
-# read excel files into a list
-```{r}
+# read excel files into a comined data frame
+
+```{r merge_dt}
 # 
-# # specify the URL of the Excel file
-# url1 <- df_links$links[1]
+# merge_dt <- data.frame()
 # 
-# GET(url1, write_disk(dt <- tempfile(fileext = ".xlsx")))
-# dtt <- read_excel(dt, sheet = grep("Bonds", excel_sheets(dt), value = TRUE),
+# for(i in 1:nrow(df_links)){
+#   GET(df_links$links[i], write_disk(dt <- tempfile(fileext = ".xlsx")))
+#   temp_dt <- read_excel(dt, sheet = grep("as at", excel_sheets(dt), value = TRUE,ignore.case = T),
 #                  range = cell_cols("A:B"),
-#                  col_names = TRUE,
+#                  col_names = TRUE, 
 #                  col_types = c("date", "numeric"),
 #                  .name_repair = toupper
 #                  )
-#   df_links$Date
-# 
-#   dtt$REPORT_DATE <- df_links$Date[1]
 #   
-# remove_words <- c("T-Bonds as at ","TBonds as at ", ".xlsx","T-Bonds-as-at-","Bonds-as-at-")
-# Date <- removeWords(Date, remove_words)
+#   temp_dt$REPORT_DATE <- df_links$Date[i]
+#   
+#    # assign(paste0("df_", i), temp_dt)
+#   
+#   merge_dt <- bind_rows(merge_dt, temp_dt)
+#   
+# }
 
 ```
 
-```{r merge_dt}
+
+```{r}
 
 merge_dt <- data.frame()
 
-for(i in 1:nrow(df_links)){
-  GET(df_links$links[i], write_disk(dt <- tempfile(fileext = ".xlsx")))
-  temp_dt <- read_excel(dt, sheet = grep("T-Bonds as at", excel_sheets(dt), value = TRUE,ignore.case = T),
-                 range = cell_cols("A:B"),
-                 col_names = TRUE, 
-                 col_types = c("date", "numeric"),
-                 .name_repair = toupper
-                 )
-  
-  temp_dt$REPORT_DATE <- df_links$Date[i]
-  
-   # assign(paste0("df_", i), temp_dt)
-  
-  merge_dt <- bind_rows(merge_dt, temp_dt)
-  
+for (i in seq_len(nrow(df_links))) {
+  tryCatch({
+    # Download the Excel file from the link and save it to a temporary file
+    if(endsWith(df_links$links[i], ".xlsx")){
+      temp_file <- tempfile(fileext = ".xlsx")
+      GET(df_links$links[i], write_disk(temp_file))
+    } else if(endsWith(df_links$links[i], ".xls")) {
+      temp_file <- tempfile(fileext = ".xls")
+      GET(df_links$links[i], write_disk(temp_file))
+    } else {
+      warning(sprintf("File type not recognized in link %d, skipping", i))
+      return()
+    }
+    
+    # Find the sheet that matches the name "Bonds as at"
+    sheets <- excel_sheets(temp_file)
+    target_sheet <- grep("Bonds as at", sheets, ignore.case = TRUE)
+    if (length(target_sheet) == 0) {
+      warning(sprintf("No sheet matching 'Bonds as at' found in link %d, skipping", i))
+      return()
+    } else if (length(target_sheet) > 1) {
+      warning(sprintf("Multiple sheets matching 'Bonds as at' found in link %d, using the first one", i))
+      target_sheet <- target_sheet[1]
+    } else {
+      target_sheet <- sheets[target_sheet]
+    }
+    
+    # Read the data from the target sheet
+    if(endsWith(temp_file, ".xlsx")){
+      temp_dt <- read_excel(temp_file, sheet = target_sheet, range = cell_cols("A:B"),
+                            col_names = TRUE, col_types = c("date", "numeric"), .name_repair = toupper)
+    } else if(endsWith(temp_file, ".xls")) {
+      temp_dt <- read_excel(temp_file, sheet = target_sheet, range = cell_cols("A:B"),
+                            col_names = TRUE, col_types = c("date", "numeric"), .name_repair = toupper)
+    }
+    
+    # Add the report date to the data frame
+    temp_dt$REPORT_DATE <- df_links$Date[i]
+    
+    # Merge the data into the final data frame
+    merge_dt <- bind_rows(merge_dt, temp_dt)
+  }, error = function(e) {
+    warning(sprintf("Error in link %d: %s, skipping", i, e$message))
+  })
 }
 
 ```
 
-```{r}
-# df_links$Date[2] <- as.Date(df_links$Date[2], format = "%dnd %b %Y")
-# 
-# for(i in 1:nrow(df_links)){
-#   if (grepl("st", df_links$Date[i])) {
-#     
-#    df_links$Date[i] <- as.Date(df_links$Date[i], format = "%dst %b %Y")
-#     
-#   } else if (grepl("nd", df_links$Date[i])) {
-#     
-#     as.Date(df_links$Date[i], format = "%dnd %b %Y")
-#     
-#   } else if (grepl("rd", df_links$Date[i])) {
-#     
-#     as.Date(df_links$Date[i], format = "%drd %b %Y")
-#     
-#   } else (grepl("th", df_links$Date[i])) {
-#     
-#     as.Date(df_links$Date[i], format = "%dth %b %Y")
-#     
-#   }
-# }
-```
+
+
 
 # write the combined table to a new excel file
 ```{r save_file}
