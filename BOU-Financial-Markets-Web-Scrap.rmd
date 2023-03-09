@@ -63,29 +63,6 @@ for(i in 1:nrow(df_links)){
 
 # read excel files into a comined data frame
 
-```{r merge_dt}
-# 
-# merge_dt <- data.frame()
-# 
-# for(i in 1:nrow(df_links)){
-#   GET(df_links$links[i], write_disk(dt <- tempfile(fileext = ".xlsx")))
-#   temp_dt <- read_excel(dt, sheet = grep("as at", excel_sheets(dt), value = TRUE,ignore.case = T),
-#                  range = cell_cols("A:B"),
-#                  col_names = TRUE, 
-#                  col_types = c("date", "numeric"),
-#                  .name_repair = toupper
-#                  )
-#   
-#   temp_dt$REPORT_DATE <- df_links$Date[i]
-#   
-#    # assign(paste0("df_", i), temp_dt)
-#   
-#   merge_dt <- bind_rows(merge_dt, temp_dt)
-#   
-# }
-
-```
-
 
 ```{r}
 
@@ -139,6 +116,34 @@ for (i in seq_len(nrow(df_links))) {
 
 ```
 
+# Clean Up the data
+
+```{r}
+
+dt <- merge_dt
+colnames(dt) <- c("maturity_date", "yield_to_maturity", "report_date")
+
+dt <- dt %>% 
+select(report_date, maturity_date, yield_to_maturity)
+
+# Convert "report_date" to date format
+dt$report_date <- dmy(str_remove_all(dt$report_date, "(?<=\\d)(st|nd|rd|th)"))
+dt$report_date <- as.Date(dt$report_date)
+
+# Convert "maturity_date" to date format
+dt$maturity_date <- format(dt$maturity_date, "%d/%m/%Y")
+dt$maturity_date <- dmy(dt$maturity_date)
+dt$maturity_date <- as.Date(dt$maturity_date)
+
+dt <- dt %>% 
+  mutate(
+    maturity_date = as.Date(gsub("^19", "20", maturity_date), format = "%Y-%m-%d"),
+    time_to_maturity = as.numeric(difftime(maturity_date, report_date,units = "days"))
+    ) %>%
+  na.omit() %>%
+  arrange(dt_mod,maturity_date,desc = F)
+```
+
 
 
 
@@ -149,8 +154,7 @@ if (file.exists("combined_data.xlsx")) {
   file.remove("combined_data.xlsx")
 }
 
-writexl::write_xlsx(merge_dt, "combined_data.xlsx")
+writexl::write_xlsx(dt, "combined_data.xlsx")
 
 ```
-
 
