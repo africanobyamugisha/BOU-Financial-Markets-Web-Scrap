@@ -144,9 +144,6 @@ dt <- dt %>%
   arrange(dt_mod,maturity_date,desc = F)
 ```
 
-
-
-
 # write the combined table to a new excel file
 ```{r save_file}
 
