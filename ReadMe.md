@@ -8,11 +8,11 @@ The code uses the `rvest` package to extract the links and titles of the Excel f
 
 ## Purpose
 
-The purpose of this code is to provide an easy and efficient way for anyone who needs to access daily T-Bonds prices and yields from the Bank of Uganda website for further analysis.
+The purpose of this code is to provide an easy and efficient way for anyone who needs to access daily yield to maturity values, report date and maturity date from the Bank of Uganda website for further analysis.
 
 ## Usage
 
-To use this code, you will need to have R installed on your computer and have the required packages (`rvest`, `DT`, and `writexl`) installed. Once you have downloaded the code, you can run it in R by sourcing the file.
+To use this code, you will need to have R installed on your computer and have the required packages (`rvest`, `DT`, and `readxl`) installed. Once you have downloaded the code, you can run it in R by sourcing the file.
 
 ## Contact
 
