@@ -2,7 +2,7 @@
 
 ## Overview
 
-This `R` code allows you to scrape a webpage from the Bank of Uganda website to extract links to daily Excel files containing T-Bonds prices and yields.
+This `R` code allows you to scrap a webpage from the Bank of Uganda website to extract links to daily Excel files containing T-Bonds prices and yields.
 
 The code uses the `rvest` package to extract the links and titles of the Excel files, which are then stored in a data frame. The `DT` package is used to combine the Excel files into one data table, and the `writexl` package is used to write the combined data to a new Excel file. The final output is a single Excel file containing all the T-Bonds prices and yields for the available data on the page.
 
