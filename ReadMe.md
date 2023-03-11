@@ -6,7 +6,9 @@ This `R` code allows you to scrap a webpage from the Bank of Uganda website to e
 From https://www.bou.or.ug/bou/bouwebsite/FinancialMarkets/Closing-TBondsPrices-Yield.html
 
 The code uses the `rvest` package to extract the links and titles of the Excel files, which are then stored in a data frame. The `DT` package is used to combine the Excel files into one data table, and the `readxl` package is used to write the combined data to a new Excel file. The final output is a single Excel file containing all the T-Bonds prices and yields for the available data on the page.
-The code uses the `dplyr` core package from `tidyverse` to do data cleaning
+The code uses the `dplyr` core package from `tidyverse` to do data cleaning.
+The Excell Output look like in the figure below 
+![excel output](https://github.com/africanobyamugisha/BOU-Financial-Markets-Web-Scrap/blob/4fc31d0fd16df81d4232b4ca709bde306f250ab2/Screenshot_20230311-180142.jpg)
 
 ## Purpose
 
